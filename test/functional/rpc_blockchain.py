@@ -31,7 +31,7 @@ from test_framework.blocktools import (
 )
 from test_framework.messages import (
     CBlockHeader,
-    FromHex,
+    from_hex,
     msg_block,
 )
 from test_framework.p2p import P2PInterface
@@ -275,7 +275,7 @@ class BlockchainTest(BitcoinTestFramework):
         assert 'muhash' in res6
         assert(res['hash_serialized_2'] != res6['muhash'])
 
-        # muhash should not be included in gettxoutset unless requested.
+        # muhash should not be returned unless requested.
         for r in [res, res2, res3, res4, res5]:
             assert 'muhash' not in r
 
@@ -314,7 +314,7 @@ class BlockchainTest(BitcoinTestFramework):
         header_hex = node.getblockheader(blockhash=besthash, verbose=False)
         assert_is_hex_string(header_hex)
 
-        header = FromHex(CBlockHeader(), header_hex)
+        header = from_hex(CBlockHeader(), header_hex)
         header.calc_sha256()
         assert_equal(header.hash, besthash)
 
@@ -409,6 +409,9 @@ class BlockchainTest(BitcoinTestFramework):
 
         self.log.info("Test that getblock with verbosity 2 still works with pruned Undo data")
         datadir = get_datadir_path(self.options.tmpdir, 0)
+
+        self.log.info("Test that getblock with invalid verbosity type returns proper error message")
+        assert_raises_rpc_error(-1, "JSON value is not an integer as expected", node.getblock, blockhash, "2")
 
         def move_block_file(old, new):
             old_path = os.path.join(datadir, self.chain, 'blocks', old)
